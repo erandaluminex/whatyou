@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting to Article Site...</title>
+    <!-- This is the key meta tag to preserve referrer information -->
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -53,8 +55,10 @@
         .manual-link:hover {
             background-color: #0056b3;
         }
+        iframe {
+            display: none;
+        }
     </style>
-    <meta name="referrer" content="unsafe-url">
 </head>
 <body>
     <div class="redirect-container">
@@ -80,19 +84,33 @@
         // Check for Facebook click ID (fbclid)
         var fbclid = getUrlParameter('fbclid');
         
-        // If fbclid exists, append it to the target URL to indicate Facebook as the source
+        // If fbclid exists, we know this is Facebook traffic
         if (fbclid) {
-            // Add a special parameter to indicate this came from Facebook
-            targetUrl += (targetUrl.indexOf('?') > -1 ? '&' : '?') + 'source=facebook&fb_click_id=' + fbclid;
+            // Create a hidden iframe that will load Facebook first
+            var iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = 'https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fposts%2F10153231379946729';
+            document.body.appendChild(iframe);
+            
+            // After a short delay, redirect from the iframe context
+            setTimeout(function() {
+                try {
+                    // Try to set the iframe location to our target
+                    iframe.contentWindow.location.href = targetUrl;
+                } catch(e) {
+                    // If that fails (due to cross-origin restrictions), use normal redirect
+                    window.location.href = targetUrl;
+                }
+            }, 1000);
+        } else {
+            // If no fbclid, just do a normal redirect after delay
+            setTimeout(function() {
+                window.location.href = targetUrl;
+            }, 1500);
         }
         
         // Update the manual link
         document.getElementById('manual-redirect').href = targetUrl;
-
-        // Redirect after a short delay (1.5 seconds)
-        setTimeout(function() {
-            window.location.href = targetUrl;
-        }, 1500);
     </script>
 </body>
 </html>
