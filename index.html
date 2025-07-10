@@ -54,7 +54,6 @@
             background-color: #0056b3;
         }
     </style>
-    <!-- Add meta referrer policy to preserve referrer when redirecting -->
     <meta name="referrer" content="unsafe-url">
 </head>
 <body>
@@ -78,42 +77,21 @@
         // Get the target URL from the parameter or use default
         var targetUrl = getUrlParameter('url') || 'https://whatyouwant.website/articles/referrer_test.php';
         
+        // Check for Facebook click ID (fbclid)
+        var fbclid = getUrlParameter('fbclid');
+        
+        // If fbclid exists, append it to the target URL to indicate Facebook as the source
+        if (fbclid) {
+            // Add a special parameter to indicate this came from Facebook
+            targetUrl += (targetUrl.indexOf('?') > -1 ? '&' : '?') + 'source=facebook&fb_click_id=' + fbclid;
+        }
+        
         // Update the manual link
         document.getElementById('manual-redirect').href = targetUrl;
 
-        // Create a form for POST redirect to preserve referrer
-        function createForm(url) {
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            form.style.display = 'none';
-            
-            // Add a hidden input with the original referrer if available
-            if (document.referrer) {
-                var input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'original_referrer';
-                input.value = document.referrer;
-                form.appendChild(input);
-            }
-            
-            document.body.appendChild(form);
-            return form;
-        }
-
         // Redirect after a short delay (1.5 seconds)
         setTimeout(function() {
-            // Try to use a form submission to preserve referrer
-            try {
-                var form = createForm(targetUrl);
-                form.submit();
-            } catch (e) {
-                // Fallback to meta refresh which has better referrer preservation than location.href
-                var meta = document.createElement('meta');
-                meta.httpEquiv = 'refresh';
-                meta.content = '0;URL=' + targetUrl;
-                document.head.appendChild(meta);
-            }
+            window.location.href = targetUrl;
         }, 1500);
     </script>
 </body>
